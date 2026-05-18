@@ -14,10 +14,17 @@ if (process.env.DATABASE_URL) {
     },
   });
 } else {
+  const useSSL = env.DB_HOST !== 'localhost' && env.DB_HOST !== '127.0.0.1';
   sequelize = new Sequelize(env.DB_NAME, env.DB_USER, env.DB_PASSWORD, {
     host: env.DB_HOST,
+    port: env.DB_PORT,
     dialect: 'mysql',
     logging: env.NODE_ENV === 'development' ? console.log : false,
+    dialectOptions: useSSL ? {
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    } : undefined,
   });
 }
 

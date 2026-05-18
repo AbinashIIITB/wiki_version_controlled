@@ -47,8 +47,10 @@ const startServer = async () => {
         await sequelize.authenticate();
         console.log('Connected to MySQL database via Sequelize');
 
-        // Synchronize models (dynamically creates tables in production if they don't exist)
+        // Temporarily disable foreign key checks to allow sync of tables in any order
+        await sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
         await sequelize.sync({ alter: true });
+        await sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
         console.log('Database schemas synchronized successfully');
 
         // Seed default roles
