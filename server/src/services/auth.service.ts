@@ -1,31 +1,47 @@
-import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-import User from '../models/User';
-import Role from '../models/Role';
+import bcrypt from 'bcryptjs';
+import { User, Role } from '../models';
 
 const authService = {
     register: async (userData: any) => {
         const hashedPassword = await bcrypt.hash(userData.password, 10);
-        const user = await User.create({ ...userData, password: hashedPassword });
+        // Default role is 3 (Viewer) if not specified
+        const roleId = userData.roleId || 3;
+        const user = await User.create({
+            username: userData.username,
+            password: hashedPassword,
+            roleId,
+        });
         return user;
     },
 
-    login: async (email: string, password: string) => {
-        const user = await User.findOne({ where: { email } });
+    login: async (loginData: any) => {
+        const { username, password } = loginData;
+        const user = await User.findOne({
+            where: { username },
+            include: [Role]
+        });
+
         if (!user || !(await bcrypt.compare(password, user.password))) {
             throw new Error('Invalid credentials');
         }
-        const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        const roleName = (user as any).Role?.name || 'Viewer';
+        const token = jwt.sign(
+            { id: user.id, username: user.username, role: roleName },
+            process.env.JWT_SECRET || 'jwt_secret_fallback',
+            { expiresIn: '1h' }
+        );
+
         return { user, token };
     },
 
     getUserById: async (id: number) => {
-        return await User.findByPk(id);
+        return await User.findByPk(id, { include: [Role] });
     },
 
     getAllUsers: async () => {
-        return await User.findAll({ include: Role });
+        return await User.findAll({ include: [Role] });
     },
 
     updateUser: async (id: number, userData: any) => {
@@ -43,3 +59,4 @@ const authService = {
 };
 
 export default authService;
+export { authService as AuthService }; // Export both default and named to prevent import bugs!

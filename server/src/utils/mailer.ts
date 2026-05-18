@@ -27,3 +27,7 @@ export const sendEmail = async (to: string, subject: string, text: string, html?
         throw new Error('Email sending failed');
     }
 };
+
+export const sendNotificationEmail = async (userId: any, message: string) => {
+    console.log(`[Notification Email] User ID: ${userId}, Message: ${message}`);
+};

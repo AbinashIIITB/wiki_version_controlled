@@ -1,5 +1,4 @@
-import { Notification } from '../models/Notification';
-import { User } from '../models/User';
+import { Notification, User } from '../models';
 
 export class NotificationService {
     async createNotification(userId: string, message: string): Promise<Notification> {
@@ -13,7 +12,7 @@ export class NotificationService {
     }
 
     async markAsRead(notificationId: string): Promise<void> {
-        await Notification.update({ read: true }, { where: { id: notificationId } });
+        await Notification.update({ isRead: true }, { where: { id: notificationId } });
     }
 
     async deleteNotification(notificationId: string): Promise<void> {

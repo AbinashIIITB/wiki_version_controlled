@@ -1,4 +1,4 @@
-import { Analytics } from '../models/Analytics';
+import { Analytics } from '../models';
 
 export const trackDocumentView = async (documentId: string, userId: string) => {
     try {
@@ -9,7 +9,7 @@ export const trackDocumentView = async (documentId: string, userId: string) => {
             timestamp: new Date(),
         });
         return analyticsData;
-    } catch (error) {
+    } catch (error: any) {
         throw new Error('Error tracking document view: ' + error.message);
     }
 };
@@ -23,7 +23,7 @@ export const trackDocumentEdit = async (documentId: string, userId: string) => {
             timestamp: new Date(),
         });
         return analyticsData;
-    } catch (error) {
+    } catch (error: any) {
         throw new Error('Error tracking document edit: ' + error.message);
     }
 };
@@ -35,7 +35,7 @@ export const getDocumentAnalytics = async (documentId: string) => {
             order: [['timestamp', 'DESC']],
         });
         return analytics;
-    } catch (error) {
+    } catch (error: any) {
         throw new Error('Error fetching document analytics: ' + error.message);
     }
 };

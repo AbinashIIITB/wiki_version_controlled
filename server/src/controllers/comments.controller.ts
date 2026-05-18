@@ -1,23 +1,20 @@
 import { Request, Response } from 'express';
-import Comment from '../models/Comment';
+import { Comment, User } from '../models';
 import { validateComment } from '../validators/comment.schema';
 
 // Create a new comment
-export const createComment = async (req: Request, res: Response) => {
+export const createComment = async (req: any, res: Response) => {
     const { error } = validateComment(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    const comment = new Comment({
-        documentId: req.body.documentId,
-        userId: req.user.id,
-        content: req.body.content,
-        createdAt: new Date(),
-    });
-
     try {
-        const savedComment = await comment.save();
+        const savedComment = await Comment.create({
+            documentId: req.body.documentId,
+            userId: req.user.id, // Populated by auth middleware
+            content: req.body.content,
+        });
         res.status(201).json(savedComment);
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).json({ message: err.message });
     }
 };
@@ -25,9 +22,12 @@ export const createComment = async (req: Request, res: Response) => {
 // Get comments for a document
 export const getComments = async (req: Request, res: Response) => {
     try {
-        const comments = await Comment.find({ documentId: req.params.documentId }).populate('userId', 'username');
+        const comments = await Comment.findAll({
+            where: { documentId: req.params.documentId },
+            include: [{ model: User, attributes: ['id', 'username'] }]
+        });
         res.status(200).json(comments);
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).json({ message: err.message });
     }
 };
@@ -38,10 +38,14 @@ export const updateComment = async (req: Request, res: Response) => {
     if (error) return res.status(400).send(error.details[0].message);
 
     try {
-        const updatedComment = await Comment.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedComment) return res.status(404).send('Comment not found');
+        const [updated] = await Comment.update(
+            { content: req.body.content },
+            { where: { id: req.params.id } }
+        );
+        if (!updated) return res.status(404).send('Comment not found');
+        const updatedComment = await Comment.findByPk(req.params.id);
         res.status(200).json(updatedComment);
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).json({ message: err.message });
     }
 };
@@ -49,10 +53,12 @@ export const updateComment = async (req: Request, res: Response) => {
 // Delete a comment
 export const deleteComment = async (req: Request, res: Response) => {
     try {
-        const deletedComment = await Comment.findByIdAndDelete(req.params.id);
-        if (!deletedComment) return res.status(404).send('Comment not found');
+        const deleted = await Comment.destroy({ where: { id: req.params.id } });
+        if (!deleted) return res.status(404).send('Comment not found');
         res.status(204).send();
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).json({ message: err.message });
     }
 };
+
+export { createComment as addComment };

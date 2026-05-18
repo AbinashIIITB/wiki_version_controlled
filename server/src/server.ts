@@ -3,43 +3,94 @@ import { json } from 'body-parser';
 import cors from 'cors';
 import http from 'http';
 import { Server } from 'socket.io';
-import { createConnection } from 'mysql2/promise';
+import { sequelize, Role } from './models';
 import routes from './routes';
-import { errorHandler } from './middleware/error';
-import { env } from './config/env';
+import errorHandler from './middleware/error';
+import env from './config/env';
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+    },
+});
 
 app.use(cors());
 app.use(json());
-app.use(routes);
+app.use('/api', routes);
 app.use(errorHandler);
+
+const seedRoles = async () => {
+    try {
+        const roles = [
+            { name: 'Admin', description: 'Has full access to all features and settings.' },
+            { name: 'Editor', description: 'Can create, edit, and delete documents.' },
+            { name: 'Viewer', description: 'Can view documents but cannot make changes.' },
+        ];
+        for (const role of roles) {
+            await Role.findOrCreate({
+                where: { name: role.name },
+                defaults: { name: role.name, description: role.description }
+            });
+        }
+        console.log('Seeded default roles successfully');
+    } catch (error) {
+        console.error('Error seeding roles:', error);
+    }
+};
 
 const startServer = async () => {
     try {
-        const connection = await createConnection({
-            host: env.DB_HOST,
-            user: env.DB_USER,
-            database: env.DB_NAME,
-            password: env.DB_PASSWORD,
-        });
-        console.log('Connected to MySQL database');
+        // Authenticate database connection
+        await sequelize.authenticate();
+        console.log('Connected to MySQL database via Sequelize');
 
-        server.listen(env.PORT, () => {
-            console.log(`Server is running on http://localhost:${env.PORT}`);
-        });
+        // Synchronize models (dynamically creates tables in production if they don't exist)
+        await sequelize.sync({ alter: true });
+        console.log('Database schemas synchronized successfully');
 
-        // WebSocket connection
+        // Seed default roles
+        await seedRoles();
+
+        // WebSocket connection logic for collaborative editing
         io.on('connection', (socket) => {
-            console.log('A user connected');
+            console.log('A user connected:', socket.id);
+
+            socket.on('joinDocument', (documentId) => {
+                socket.join(documentId);
+                console.log(`User ${socket.id} joined document ${documentId}`);
+                socket.to(documentId).emit('userJoined', socket.id);
+            });
+
+            socket.on('leaveDocument', (documentId) => {
+                socket.leave(documentId);
+                console.log(`User ${socket.id} left document ${documentId}`);
+                socket.to(documentId).emit('userLeft', socket.id);
+            });
+
+            socket.on('editDocument', (data) => {
+                const { documentId, content } = data;
+                socket.to(documentId).emit('documentUpdated', content);
+            });
+
+            socket.on('sendMessage', (data) => {
+                const { documentId, message } = data;
+                socket.to(documentId).emit('messageReceived', message);
+            });
+
             socket.on('disconnect', () => {
-                console.log('User disconnected');
+                console.log('User disconnected:', socket.id);
             });
         });
+
+        // Start listening
+        server.listen(env.PORT, () => {
+            console.log(`Server is running on port ${env.PORT}`);
+        });
     } catch (error) {
-        console.error('Error connecting to the database:', error);
+        console.error('Error starting server:', error);
     }
 };
 

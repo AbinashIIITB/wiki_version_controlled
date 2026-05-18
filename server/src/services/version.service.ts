@@ -1,5 +1,4 @@
-import { Version } from '../models/Version';
-import { Document } from '../models/Document';
+import { Version, Document } from '../models';
 
 export class VersionService {
     async createVersion(documentId: number, content: string, authorId: number): Promise<Version> {

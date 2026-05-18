@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Tag from '../models/Tag';
+import { Tag } from '../models';
 
 // Create a new tag
 export const createTag = async (req: Request, res: Response) => {

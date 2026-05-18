@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/User';
+import { User } from '../models';
 
-const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+const authenticateToken = (req: any, res: Response, next: NextFunction) => {
     const token = req.headers['authorization']?.split(' ')[1];
     if (!token) return res.sendStatus(401);
 
-    jwt.verify(token, process.env.JWT_SECRET as string, (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET as string, (err: any, user: any) => {
         if (err) return res.sendStatus(403);
         req.user = user;
         next();
@@ -14,7 +14,7 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const authorizeRoles = (...roles: string[]) => {
-    return (req: Request, res: Response, next: NextFunction) => {
+    return (req: any, res: Response, next: NextFunction) => {
         if (!req.user || !roles.includes(req.user.role)) {
             return res.sendStatus(403);
         }
@@ -22,4 +22,4 @@ const authorizeRoles = (...roles: string[]) => {
     };
 };
 
-export { authenticateToken, authorizeRoles };
+export { authenticateToken as authenticate, authenticateToken, authorizeRoles };

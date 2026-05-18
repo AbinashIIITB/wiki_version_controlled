@@ -10,7 +10,7 @@ export const DocumentSchema = z.object({
 });
 
 export const DocumentUpdateSchema = DocumentSchema.partial().extend({
-  id: z.number().int().positive('Document ID must be a positive integer').required(),
+  id: z.number().int().positive('Document ID must be a positive integer'),
 });
 
 export type Document = z.infer<typeof DocumentSchema>;

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { createTag, getTags, updateTag, deleteTag } from '../controllers/tags.controller';
-import { verifyToken, isAdmin } from '../middleware/auth';
+import { authenticate as verifyToken } from '../middleware/auth';
+import { adminOnly as isAdmin } from '../middleware/roles';
 
 const router = Router();
 

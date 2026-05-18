@@ -40,7 +40,7 @@ Version.init(
     },
     commitMessage: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
   },
   {

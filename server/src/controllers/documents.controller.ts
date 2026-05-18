@@ -1,63 +1,70 @@
 import { Request, Response } from 'express';
-import Document from '../models/Document';
-import Version from '../models/Version';
-import Comment from '../models/Comment';
-import { createDocument, updateDocument, getDocumentById, getAllDocuments, deleteDocument } from '../services/document.service';
+import * as documentService from '../services/document.service';
 
-// Create a new document
-export const createNewDocument = async (req: Request, res: Response) => {
+export const createDocument = async (req: any, res: Response) => {
     try {
-        const documentData = req.body;
-        const newDocument = await createDocument(documentData);
-        res.status(201).json(newDocument);
-    } catch (error) {
-        res.status(500).json({ message: 'Error creating document', error });
+        const doc = await documentService.createDocument({
+            title: req.body.title,
+            content: req.body.content,
+            authorId: req.user?.id || 1, // Populate author from authenticated token
+        });
+        res.status(201).json(doc);
+    } catch (error: any) {
+        res.status(500).json({ message: 'Error creating document', error: error.message });
     }
 };
 
-// Update an existing document
-export const updateExistingDocument = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const documentData = req.body;
-        const updatedDocument = await updateDocument(id, documentData);
-        res.status(200).json(updatedDocument);
-    } catch (error) {
-        res.status(500).json({ message: 'Error updating document', error });
-    }
-};
-
-// Get a document by ID
 export const getDocument = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
-        const document = await getDocumentById(id);
-        if (!document) {
+        const id = Number(req.params.id);
+        const doc = await documentService.getDocumentById(id);
+        if (!doc) {
             return res.status(404).json({ message: 'Document not found' });
         }
-        res.status(200).json(document);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching document', error });
+        res.status(200).json(doc);
+    } catch (error: any) {
+        res.status(500).json({ message: 'Error fetching document', error: error.message });
     }
 };
 
-// Get all documents
-export const getAllDocs = async (req: Request, res: Response) => {
+export const updateDocument = async (req: Request, res: Response) => {
     try {
-        const documents = await getAllDocuments();
-        res.status(200).json(documents);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching documents', error });
+        const id = Number(req.params.id);
+        const doc = await documentService.updateDocument(id, req.body);
+        if (!doc) {
+            return res.status(404).json({ message: 'Document not found' });
+        }
+        res.status(200).json(doc);
+    } catch (error: any) {
+        res.status(500).json({ message: 'Error updating document', error: error.message });
     }
 };
 
-// Delete a document
-export const deleteDoc = async (req: Request, res: Response) => {
+export const deleteDocument = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
-        await deleteDocument(id);
+        const id = Number(req.params.id);
+        await documentService.deleteDocument(id);
         res.status(204).send();
-    } catch (error) {
-        res.status(500).json({ message: 'Error deleting document', error });
+    } catch (error: any) {
+        res.status(500).json({ message: 'Error deleting document', error: error.message });
+    }
+};
+
+export const getAllDocuments = async (req: Request, res: Response) => {
+    try {
+        const docs = await documentService.getAllDocuments();
+        res.status(200).json(docs);
+    } catch (error: any) {
+        res.status(500).json({ message: 'Error fetching documents', error: error.message });
+    }
+};
+
+export const getDocumentVersions = async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.params.id);
+        const versions = await documentService.getDocumentVersions(id);
+        res.status(200).json(versions);
+    } catch (error: any) {
+        res.status(500).json({ message: 'Error fetching versions', error: error.message });
     }
 };

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Notification from '../models/Notification';
+import { Notification } from '../models';
 import { sendNotificationEmail } from '../utils/mailer';
 
 // Create a new notification
@@ -29,7 +29,7 @@ export const getUserNotifications = async (req: Request, res: Response) => {
 export const markAsRead = async (req: Request, res: Response) => {
     try {
         const { notificationId } = req.params;
-        await Notification.update({ read: true }, { where: { id: notificationId } });
+        await Notification.update({ isRead: true }, { where: { id: notificationId } });
         res.status(200).json({ message: 'Notification marked as read' });
     } catch (error) {
         res.status(500).json({ message: 'Error marking notification as read', error });
@@ -46,3 +46,5 @@ export const deleteNotification = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error deleting notification', error });
     }
 };
+
+export { getUserNotifications as getNotifications };

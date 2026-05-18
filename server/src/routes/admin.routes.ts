@@ -7,7 +7,8 @@ import {
     deleteUser, 
     getRoles 
 } from '../controllers/admin.controller';
-import { verifyToken, isAdmin } from '../middleware/auth';
+import { authenticate as verifyToken } from '../middleware/auth';
+import { adminOnly as isAdmin } from '../middleware/roles';
 
 const router = Router();
 

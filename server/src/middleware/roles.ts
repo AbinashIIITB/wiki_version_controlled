@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { Role } from '../models/Role';
 
-export const authorize = (roles: string[]) => {
-    return async (req: Request, res: Response, next: NextFunction) => {
+export const authorize = (roles: string[] | string, ...moreRoles: string[]) => {
+    const rolesArray = Array.isArray(roles) ? roles : [roles, ...moreRoles];
+    return async (req: any, res: Response, next: NextFunction) => {
         try {
-            const userRole = req.user.role; // Assuming req.user is populated with user info
-            if (!roles.includes(userRole)) {
+            const userRole = req.user?.role; // Assuming req.user is populated with user info
+            if (!rolesArray.includes(userRole)) {
                 return res.status(403).json({ message: 'Access denied' });
             }
             next();

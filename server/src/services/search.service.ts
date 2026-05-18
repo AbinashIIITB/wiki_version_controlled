@@ -1,5 +1,5 @@
-import { Document } from '../models/Document';
-import { Tag } from '../models/Tag';
+import { Op } from 'sequelize';
+import { Document, Tag } from '../models';
 
 export const searchDocuments = async (query: string) => {
     const documents = await Document.findAll({

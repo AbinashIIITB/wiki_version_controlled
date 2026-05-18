@@ -1,14 +1,25 @@
-import { createPool } from 'mysql2/promise';
-import { config } from '../config/env';
+import { Sequelize } from 'sequelize';
+import env from './env';
 
-const pool = createPool({
-  host: config.DB_HOST,
-  user: config.DB_USER,
-  password: config.DB_PASSWORD,
-  database: config.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
+let sequelize: Sequelize;
 
-export default pool;
+if (process.env.DATABASE_URL) {
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'mysql',
+    logging: env.NODE_ENV === 'development' ? console.log : false,
+    dialectOptions: {
+      ssl: {
+        rejectUnauthorized: false, // Required for secure cloud DB providers like Aiven
+      },
+    },
+  });
+} else {
+  sequelize = new Sequelize(env.DB_NAME, env.DB_USER, env.DB_PASSWORD, {
+    host: env.DB_HOST,
+    dialect: 'mysql',
+    logging: env.NODE_ENV === 'development' ? console.log : false,
+  });
+}
+
+export { sequelize };
+export default sequelize;

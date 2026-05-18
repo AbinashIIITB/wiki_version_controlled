@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import Version from '../models/Version';
-import Document from '../models/Document';
+import { Version, Document } from '../models';
 
 // Create a new version
 export const createVersion = async (req: Request, res: Response) => {
@@ -62,3 +61,18 @@ export const deleteVersion = async (req: Request, res: Response) => {
         return res.status(500).json({ message: 'Error deleting version', error });
     }
 };
+
+// Update a version
+export const updateVersion = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const [updated] = await Version.update(req.body, { where: { id } });
+        if (!updated) return res.status(404).json({ message: 'Version not found' });
+        const updatedVersion = await Version.findByPk(id);
+        return res.status(200).json(updatedVersion);
+    } catch (error) {
+        return res.status(500).json({ message: 'Error updating version', error });
+    }
+};
+
+export { getVersions as getAllVersions, getVersion as getVersionById };

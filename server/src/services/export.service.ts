@@ -1,6 +1,4 @@
-import { Document } from '../models/Document';
-import { Version } from '../models/Version';
-import { User } from '../models/User';
+import { Document, Version, User } from '../models';
 import { createWriteStream } from 'fs';
 import { join } from 'path';
 import { promisify } from 'util';
@@ -10,7 +8,7 @@ import { PDFDocument } from 'pdf-lib';
 const streamPipeline = promisify(pipeline);
 
 export const exportDocumentAsMarkdown = async (documentId: string, userId: string) => {
-    const document = await Document.findById(documentId);
+    const document = await Document.findByPk(documentId);
     if (!document) throw new Error('Document not found');
 
     const content = `# ${document.title}\n\n${document.content}`;
@@ -26,7 +24,7 @@ export const exportDocumentAsMarkdown = async (documentId: string, userId: strin
 };
 
 export const exportDocumentAsPDF = async (documentId: string, userId: string) => {
-    const document = await Document.findById(documentId);
+    const document = await Document.findByPk(documentId);
     if (!document) throw new Error('Document not found');
 
     const pdfDoc = await PDFDocument.create();

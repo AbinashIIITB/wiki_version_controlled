@@ -1,5 +1,4 @@
-import { Comment } from '../models/Comment';
-import { Document } from '../models/Document';
+import { Comment, Document, User } from '../models';
 
 export const createComment = async (documentId: number, userId: number, content: string) => {
     const newComment = await Comment.create({
