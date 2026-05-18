@@ -1,5 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { Route, Switch, Redirect } from 'react-router-dom';
+import Login from '../pages/Login';
+import Register from '../pages/Register';
 import Dashboard from '../pages/Dashboard';
 import DocumentView from '../pages/DocumentView';
 import DocumentEdit from '../pages/DocumentEdit';
@@ -10,16 +12,17 @@ import ProtectedRoute from './ProtectedRoute';
 
 const Routes = () => {
     return (
-        <Router>
-            <Switch>
-                <ProtectedRoute path="/dashboard" component={Dashboard} />
-                <ProtectedRoute path="/documents/:id/edit" component={DocumentEdit} />
-                <ProtectedRoute path="/documents/:id" component={DocumentView} />
-                <ProtectedRoute path="/templates" component={Templates} />
-                <ProtectedRoute path="/admin" component={AdminPanel} />
-                <ProtectedRoute path="/search" component={Search} />
-            </Switch>
-        </Router>
+        <Switch>
+            <Route exact path="/login" component={Login} />
+            <Route exact path="/register" component={Register} />
+            <ProtectedRoute path="/dashboard" component={Dashboard} />
+            <ProtectedRoute path="/documents/:id/edit" component={DocumentEdit} />
+            <ProtectedRoute path="/documents/:id" component={DocumentView} />
+            <ProtectedRoute path="/templates" component={Templates} />
+            <ProtectedRoute path="/admin" component={AdminPanel} />
+            <ProtectedRoute path="/search" component={Search} />
+            <Redirect from="/" to="/dashboard" />
+        </Switch>
     );
 };
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, logout, selectAuth } from '../store/auth.slice';
-import { api } from '../services/api';
+import { getCurrentUser } from '../services/api';
 
 const useAuth = () => {
     const dispatch = useDispatch();
@@ -10,8 +10,14 @@ const useAuth = () => {
 
     useEffect(() => {
         const fetchUser = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                dispatch(logout());
+                setLoading(false);
+                return;
+            }
             try {
-                const user = await api.getUser();
+                const user: any = await getCurrentUser();
                 dispatch(login(user));
             } catch (error) {
                 console.error('Failed to fetch user:', error);
